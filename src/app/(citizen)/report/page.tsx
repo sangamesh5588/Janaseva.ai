@@ -12,14 +12,14 @@ import { CategoryIllustration } from '@/components/icons/category-illustrations'
 import { CivicCamera } from '@/components/camera/civic-camera';
 import { LocationPicker } from '@/components/location/location-picker';
 import { reverseGeocodeCoords } from '@/lib/google-maps';
-import { Send, Check, AlertCircle } from 'lucide-react';
+import { Send, Check, AlertCircle, Lock, Loader2 } from 'lucide-react';
 
 function ReportForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialCategory = (searchParams.get('category') as ProblemCategory) || 'road_damage';
 
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { t, language } = useI18n();
 
   const [category, setCategory] = useState<ProblemCategory>(initialCategory);
@@ -33,6 +33,16 @@ function ReportForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Protect route: Redirect unauthenticated citizens to login with return target
+  useEffect(() => {
+    if (!isLoading && !user) {
+      const returnUrl = typeof window !== 'undefined'
+        ? `${window.location.pathname}${window.location.search}`
+        : '/report';
+      router.replace(`/login?redirectTo=${encodeURIComponent(returnUrl)}`);
+    }
+  }, [isLoading, user, router]);
 
   useEffect(() => {
     const paramCat = searchParams.get('category') as ProblemCategory;
@@ -84,6 +94,16 @@ function ReportForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      setError(language === 'kn' ? 'ದೂರು ದಾಖಲಿಸಲು ದಯವಿಟ್ಟು ಸೈನ್ ಇನ್ ಮಾಡಿ' : 'Please sign in to submit a complaint');
+      const returnUrl = typeof window !== 'undefined'
+        ? `${window.location.pathname}${window.location.search}`
+        : '/report';
+      router.push(`/login?redirectTo=${encodeURIComponent(returnUrl)}`);
+      return;
+    }
+
     if (!description.trim()) {
       setError(language === 'kn' ? 'ದಯವಿಟ್ಟು ಸಮಸ್ಯೆಯ ವಿವರಣೆ ಬರೆಯಿರಿ' : 'Please provide problem details');
       return;
@@ -96,7 +116,7 @@ function ReportForm() {
     setError('');
     setLoading(true);
 
-    const citizenId = user?.id || 'mock-citizen-id';
+    const citizenId = user.id;
     const { report, error: submitError } = await submitNewReport({
       citizenId,
       category,
@@ -117,6 +137,46 @@ function ReportForm() {
       router.push(`/reports/${report.tracking_id}`);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[55vh] flex flex-col items-center justify-center p-8 space-y-3 font-sans">
+        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        <p className="text-xs font-semibold text-slate-500">
+          {language === 'kn' ? 'ಖಾತೆಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...' : 'Verifying citizen authentication...'}
+        </p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-[55vh] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
+        <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-sm">
+          <Lock className="w-7 h-7" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-base font-extrabold text-slate-900">
+            {language === 'kn' ? 'ಲಾಗಿನ್ ಅಗತ್ಯವಿದೆ' : 'Sign In Required'}
+          </h2>
+          <p className="text-xs font-medium text-slate-500 max-w-xs mx-auto">
+            {language === 'kn'
+              ? 'ದೂರು ದಾಖಲಿಸಲು ಮತ್ತು ನವೀಕರಣಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಲು ದಯವಿಟ್ಟು ಸೈನ್ ಇನ್ ಮಾಡಿ.'
+              : 'Please sign in to file civic complaints and track progress with municipal officers.'}
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            const returnUrl = typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '/report';
+            router.push(`/login?redirectTo=${encodeURIComponent(returnUrl)}`);
+          }}
+          className="px-5 py-2.5 rounded-xl bg-[#1E1B4B] hover:bg-[#2B2564] text-white text-xs font-bold shadow-md cursor-pointer transition-all"
+        >
+          {language === 'kn' ? 'ಈಗ ಸೈನ್ ಇನ್ ಮಾಡಿ' : 'Sign In to Continue'}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="py-1 pb-32 space-y-5 font-sans">

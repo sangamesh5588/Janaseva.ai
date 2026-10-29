@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n } from '@/lib/i18n/context';
 import { NeoInput } from '@/components/neopop/neo-input';
-import { User, Mail, Lock, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, CheckCircle2, ArrowLeft, ShieldCheck } from 'lucide-react';
 
 function SignUpForm() {
   const router = useRouter();
@@ -80,6 +80,24 @@ function SignUpForm() {
           {t.signUpSubtitle}
         </p>
       </div>
+
+      {redirectTo.startsWith('/report') && (
+        <div className="mb-4 p-3.5 bg-indigo-50 border border-indigo-200/90 rounded-2xl flex items-start gap-3 text-indigo-950 shadow-xs">
+          <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-xs font-bold leading-tight">
+              {language === 'kn' ? 'ದೂರು ದಾಖಲಿಸಲು ಖಾತೆಯನ್ನು ರಚಿಸಿ' : 'Create an account to file your report'}
+            </p>
+            <p className="text-[11px] text-indigo-700/90 font-medium mt-0.5 leading-snug">
+              {language === 'kn'
+                ? 'ಖಾತೆ ಸೃಷ್ಟಿಯಾದ ತಕ್ಷಣ ನಿಮ್ಮ ದೂರು ನಮೂನೆಗೆ ನೇರವಾಗಿ ಮರುನಿರ್ದೇಶಿಸಲಾಗುತ್ತದೆ.'
+                : 'You will be redirected straight to your complaint form immediately after signing up.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-neutral-200/90 p-5 shadow-sm space-y-4 mb-4">
         {verificationSent ? (

@@ -18,7 +18,11 @@ export default function HomePage() {
   const { user, profile } = useAuth();
 
   const handleCategorySelect = (categoryId: string) => {
-    router.push(`/report?category=${categoryId}`);
+    if (!user) {
+      router.push(`/login?redirectTo=${encodeURIComponent(`/report?category=${categoryId}`)}`);
+    } else {
+      router.push(`/report?category=${categoryId}`);
+    }
   };
 
   const citizenName =
