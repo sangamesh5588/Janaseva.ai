@@ -207,7 +207,7 @@ The complete SQL migration script is located in [`supabase-complete-schema.sql`]
 
 ### 1. Clone the Repository:
 ```bash
-git clone https://github.com/Acchuarya/Janaseva.ai.git
+git clone https://github.com/sangamesh5588/Janaseva.ai.git
 cd Janaseva.ai
 ```
 
